@@ -71,4 +71,4 @@ def send_data():
             bot.messages.send_message(message_req)
 
             # Чтобы спама не было
-            time.sleep(1)
+            time.sleep(10)
