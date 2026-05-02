@@ -7,6 +7,7 @@ load_dotenv()
 TIME_MESSAGES = [t.strip() for t in os.getenv("TIME_MESSAGES").split(",")]
 
 def start():
+    print("start")
     while True:
         time_zone = pytz.timezone("Asia/Irkutsk")
         now_irkutsk = datetime.now(time_zone)
