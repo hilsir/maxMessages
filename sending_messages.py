@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from maxbot_api_client_python import API, Config
 from maxbot_api_client_python.types.constants import UploadType
 from maxbot_api_client_python.types.models import UploadFileReq, SendMessageReq
-from maxbot_api_client_python.utils import attach_image
+from maxbot_api_client_python.utils import attach_image, attach_file
 
 from path_formation import PathManager
 # Загружаем конфиг
@@ -44,31 +44,48 @@ def send_data():
             if not os.path.exists(image_path) and not os.path.exists(text_path):
                 continue
 
-            # Получить текст
-            with open(text_path, 'r', encoding='utf-8') as f:
-                caption_text = f.read()
-
             # Объект запроса картинки
-            upload_req = UploadFileReq(
+            image_upload_req = UploadFileReq(
                 type=UploadType.IMAGE,
                 file_path=image_path
             )
 
             # Отправка картинки на сервер и получть ссылку на неё
-            file_info = bot.uploads.upload_file(upload_req)
+            image_info = bot.uploads.upload_file(image_upload_req)
 
-            if not file_info and not file_info.token:
+            if not image_info and not image_info.token:
                 continue
 
-            # Собираем сообщение
-            message_req = SendMessageReq(
-                chat_id=GROUP_ID,
-                text=caption_text,
-                attachments=[attach_image(token=file_info.token)]  # прекрипили токен картинки
+            # Объект запроса текстового файла
+            text_upload_req = UploadFileReq(
+                type=UploadType.FILE,
+                file_path=text_path
             )
 
-            # Отправляем сообщение
-            bot.messages.send_message(message_req)
+            # Отправка текстового файла на сервер и получить ссылку на него
+            text_info = bot.uploads.upload_file(text_upload_req)
+
+            if not text_info and not text_info.token:
+                continue
+
+            # MAX API не позволяет прикладывать файл вместе с картинкой
+            # в одном сообщении, поэтому отправляем их отдельными сообщениями
+
+            # Сообщение с картинкой
+            image_message_req = SendMessageReq(
+                chat_id=GROUP_ID,
+                attachments=[attach_image(token=image_info.token)]
+            )
+            bot.messages.send_message(image_message_req)
+
+            time.sleep(1)
+
+            # Сообщение с текстовым файлом
+            text_message_req = SendMessageReq(
+                chat_id=GROUP_ID,
+                attachments=[attach_file(token=text_info.token, filename=os.path.basename(text_path))]
+            )
+            bot.messages.send_message(text_message_req)
 
             # Чтобы спама не было
             time.sleep(10)
