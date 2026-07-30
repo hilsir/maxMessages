@@ -6,9 +6,15 @@ class PathManager:
         load_dotenv()
         self.data_path = os.getenv("DATA_PATH")
 
-    # Получаем список всех папок внутри DATA_PATH
+    # Рекурсивно обходим все вложенные папки DATA_PATH и возвращаем
+    # только конечные папки (те, где лежат файлы с именем самой папки)
     def folders_list(self):
-        return [f for f in os.listdir(self.data_path) if os.path.isdir(os.path.join(self.data_path, f))]
+        leaf_folders = []
+        for root, _, _ in os.walk(self.data_path):
+            folder_name = os.path.basename(root)
+            if os.path.exists(self.text_path(root, folder_name)) or self.image_path(root, folder_name):
+                leaf_folders.append(root)
+        return leaf_folders
 
     @staticmethod
     def image_path(folder_full_path, folder_name):

@@ -14,7 +14,6 @@ load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 GROUP_ID = os.getenv("GROUP_ID")
-DATA_PATH = os.getenv("DATA_PATH")
 TIME_MESSAGES = [t.strip() for t in os.getenv("TIME_MESSAGES").split(",")]
 
 # Настраиваем API
@@ -33,15 +32,15 @@ def send_data():
     # все папки с картинками и текстами
         folders_list = path_manager.folders_list()
 
-        for folder_name in folders_list:
-            folder_full_path = os.path.join(DATA_PATH, folder_name)
+        for folder_full_path in folders_list:
+            folder_name = os.path.basename(folder_full_path)
 
             # Формируем пути к файлам на основе имени папки
             image_path = path_manager.image_path(folder_full_path, folder_name)
             text_path = path_manager.text_path(folder_full_path, folder_name)
 
             # Проверяем, что оба файла существуют
-            if not os.path.exists(image_path) and not os.path.exists(text_path):
+            if not image_path or not os.path.exists(text_path):
                 continue
 
             # Объект запроса картинки
